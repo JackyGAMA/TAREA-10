@@ -1,0 +1,102 @@
+import java.util.PriorityQueue;
+import java.util.Comparator;
+
+public class Laberinto {
+    private static final int FILAS = 14;
+    private static final int COLUMNAS = 8;
+    private static final char PARED = 'c';
+    private static final char CAMINO = 'p';
+    private static final char INICIO = 'E';
+    private static final char SALIDA = 's';
+
+    private static char[][] laberinto = {
+        {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+        {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+        {'p', 'p', 'p', 'c', 'c', 'c', 'c', 'c'},
+        {'p', 'c', 'c', 'c', 'p', 'p', 'c', 'p'},
+        {'p', 'c', 'p', 'p', 'p', 'p', 'c', 'p'},
+        {'p', 'c', 'c', 'c', 'p', 'c', 'p', 'p'},
+        {'p', 'p', 'c', 'p', 'c', 'c', 'p', 'p'},
+        {'c', 'p', 'c', 'p', 'p', 'p', 'p', 'p'},
+        {'p', 'p', 'c', 'c', 'c', 'p', 'p', 's'},
+        {'p', 'p', 'p', 'p', 'p', 'p', 'c', 'p'},
+        {'p', 'c', 'p', 'c', 'c', 'p', 'p', 'p'},
+        {'p', 'c', 'c', 'p', 'p', 'c', 'p', 'p'},
+        {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+        {'p', 'E', 'p', 'c', 'c', 'c', 'p', 'p'}
+    };
+
+    static class Nodo {
+        int x, y, pasos, distanciaManhattan;
+
+        Nodo(int x, int y, int pasos, int distanciaManhattan) {
+            this.x = x;
+            this.y = y;
+            this.pasos = pasos;
+            this.distanciaManhattan = distanciaManhattan;
+        }
+    }
+
+    
+    private static int calcularDistanciaManhattan(int x1, int y1, int x2, int y2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    }
+
+    
+    public static boolean resolverLaberinto(int inicioX, int inicioY, int salidaX, int salidaY) {
+        PriorityQueue<Nodo> cola = new PriorityQueue<>(Comparator.comparingInt(n -> n.pasos + n.distanciaManhattan));
+        boolean[][] visitado = new boolean[FILAS][COLUMNAS];
+
+        cola.add(new Nodo(inicioX, inicioY, 0, calcularDistanciaManhattan(inicioX, inicioY, salidaX, salidaY)));
+
+        int[] dx = {0, 1, 0, -1};
+        int[] dy = {1, 0, -1, 0};
+
+        while (!cola.isEmpty()) {
+            Nodo actual = cola.poll();
+
+            if (actual.x == salidaX && actual.y == salidaY) {
+                laberinto[actual.x][actual.y] = 'S'; // Marca la salida
+                return true;
+            }
+
+            if (visitado[actual.x][actual.y]) continue;
+            visitado[actual.x][actual.y] = true;
+            laberinto[actual.x][actual.y] = '.';
+
+            for (int i = 0; i < 4; i++) {
+                int nx = actual.x + dx[i];
+                int ny = actual.y + dy[i];
+
+                if (nx >= 0 && nx < FILAS && ny >= 0 && ny < COLUMNAS && !visitado[nx][ny] && laberinto[nx][ny] != PARED) {
+                    int nuevaDistancia = calcularDistanciaManhattan(nx, ny, salidaX, salidaY);
+                    cola.add(new Nodo(nx, ny, actual.pasos + 1, nuevaDistancia));
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static void imprimirLaberinto() {
+        for (int i = 0; i < FILAS; i++) {
+            for (int j = 0; j < COLUMNAS; j++) {
+                System.out.print(laberinto[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static void main(String[] args) {
+        int inicioX = 13, inicioY = 1; 
+        int salidaX = 8, salidaY = 7;  
+
+        if (resolverLaberinto(inicioX, inicioY, salidaX, salidaY)) {
+            System.out.println("Solución encontrada:");
+        } else {
+            System.out.println("No se encontró solución.");
+        }
+
+        imprimirLaberinto();
+    }
+}
